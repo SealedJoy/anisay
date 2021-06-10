@@ -11,10 +11,13 @@ animation_mouth_line = 4
 #frame_rate = 0.17
 h_padding_int = 2
 v_padding_int = 1
-art_max_width = 38 #edge to edge of ascii size
-art_max_height = 19
+art_max_width = 5 #edge to edge of ascii size
+art_max_height = 5
 # # # END USER SETTINGS # # #
 
+space_for_text = 5
+space_for_art = 5
+text_max_height = 5
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", "--speed",type=float, default='0.005', help="Speed in seconds at which text is printed to screen by axolotl. (Default: 0.005)")
@@ -32,16 +35,21 @@ alphabet = " #@*!?$&abcdefghijklmnopqrstiuvwxyz "
 homedir = os.path.expanduser("~")
 animation_folder_path = homedir + "/.config/anisay/ascii/{}/".format(args.ascii)
 
-h_padding = ''
-for space in range(0,h_padding_int):
-    h_padding = h_padding + ' '
-v_padding = ''
-for space in range(v_padding_int):
-    v_padding = v_padding + ' '
-text_max_height = term.height - 2
-space_for_text = (term.width - art_max_width) - h_padding_int*2
-space_for_art = (term.width - space_for_text) - h_padding_int*2
-
+def calculate_working_area():
+    global h_padding
+    global v_padding
+    global space_for_art
+    global space_for_text
+    global text_max_height 
+    h_padding = ''
+    for space in range(0,h_padding_int):
+        h_padding = h_padding + ' '
+    v_padding = ''
+    for space in range(v_padding_int):
+        v_padding = v_padding + ' '
+    text_max_height = term.height - 2
+    space_for_text = (term.width - art_max_width) - h_padding_int*2
+    space_for_art = (term.width - space_for_text) - h_padding_int*2
 
 ### testing
 
@@ -102,15 +110,13 @@ def check_term():
         print("Current size is " + str(term.width) + " by " + str(term.height))
         sys.exit()
 
-#def check_art_size()
+def get_art_size(animation):
+    global art_max_width
+    global art_max_height
     #called from main first
-    #load frame 1
-    #measure x
-    #measure y
-    #return x,y
-    #set x,y in main loop
- #   return None
-
+    art_max_width = len(animation[0][0])
+    art_max_height = len(animation[0])
+   
 def load_art(ascii_path):
     with open(ascii_path) as file:
         data = file.readlines()
@@ -147,36 +153,17 @@ def wrap_text(user_input): #recieve args.strings list
     return wrapped_lines 
 
 def get_file_paths():
+    global animation_folder_path
+    if os.path.isdir(animation_folder_path) is False: 
+        print("recommended to run installer")
+        animation_folder_path = "ascii/{}/".format(args.ascii)
     animation_file_paths = [os.path.join(r,file) for r,d,f in os.walk(animation_folder_path) for file in f]
     # sort files according to numbered extension
     sorted_file_paths = sorted(animation_file_paths)
 
-
-   # file_paths_ordered = []
-   # file_paths_split = []
-    #for file in animation_file_paths:
-    #    if file != "author.txt":
-    #        #frame_file = file 
-    #        split_file_name = file.split('.')
-    #        file_paths_split = file_paths_split, (split_file_name[0], split_file_name[1])
-    #file_paths_ordered = sorted(file_paths_split, key=itemgetter(1))
-    
-    #output_order = [] 
-   # for tup in file_paths_ordered:
-   #     filename = tup[0] + "." + tup[1]
-   #     print(filename)
-   #     sleep(2)
-   #     output_order = output_order, filename
-    
-
-    print(str(sorted_file_paths))
-    sleep(5)
-   # animation_file_paths.sort()
-  #  print(str(animation_file_paths))
- #
-    #sleep(5)
+   # print(str(sorted_file_paths))
+   # sleep(3)
     return sorted_file_paths
-    #return output_order 
     
 def line_erase(line):
     #txt_erase = term.move_y(line) + ' '
@@ -296,6 +283,9 @@ def main():
     signal.signal(signal.SIGWINCH, on_resize)
     animation_file_paths = get_file_paths()
     animation = load_frames(animation_file_paths)
+    get_art_size(animation)
+    calculate_working_area()
+    
     selected_page = 0
     if args.command:
         user_input = run_command(args.command)
