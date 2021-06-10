@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import random, threading, subprocess, signal, sys, os, argparse, textwrap
 from time import sleep
+from operator import itemgetter
 from blessed import Terminal
 term = Terminal()
 
@@ -18,7 +19,7 @@ art_max_height = 19
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", "--speed",type=float, default='0.005', help="Speed in seconds at which text is printed to screen by axolotl. (Default: 0.005)")
 parser.add_argument("-f", "--framerate",type=float, default='0.17', help="Show a frame every ... seconds (Default: 0.17)")
-parser.add_argument("-t", "--timeout", type=float, default='2', help="Automatically progress pages after a number of seconds till end (default: 2)")
+parser.add_argument("-t", "--timeout", help="Automatically progress pages after a number of seconds till end (default: 2)")
 parser.add_argument("-a", "--ascii",type=str, default='axolotl', help="Ascii character folder to select (default: axolotl)")
 parser.add_argument("-c", "--command",type=str, help="On-going command to display output: (eg: fortune)")
 parser.add_argument("--clear",type=float, default='0.0005', help="Speed at which text is cleared from the screen (default: 0.0001)")
@@ -29,8 +30,7 @@ args = parser.parse_args()
 speed = float(args.speed)
 alphabet = " #@*!?$&abcdefghijklmnopqrstiuvwxyz "
 homedir = os.path.expanduser("~")
-user_animation_folder = "~/.config/anisay/animated/"
-animation_folder_path = "~/.config/anisay/animated/{}/".format(args.ascii)
+animation_folder_path = homedir + "/.config/anisay/ascii/{}/".format(args.ascii)
 
 h_padding = ''
 for space in range(0,h_padding_int):
@@ -149,16 +149,34 @@ def wrap_text(user_input): #recieve args.strings list
 def get_file_paths():
     animation_file_paths = [os.path.join(r,file) for r,d,f in os.walk(animation_folder_path) for file in f]
     # sort files according to numbered extension
-    for file in animation_file_paths:
-        frame_file = file 
-        frame_number = file.split('.')
-    print(str(animation_file_paths))
-   # sleep(5)
+    sorted_file_paths = sorted(animation_file_paths)
+
+
+   # file_paths_ordered = []
+   # file_paths_split = []
+    #for file in animation_file_paths:
+    #    if file != "author.txt":
+    #        #frame_file = file 
+    #        split_file_name = file.split('.')
+    #        file_paths_split = file_paths_split, (split_file_name[0], split_file_name[1])
+    #file_paths_ordered = sorted(file_paths_split, key=itemgetter(1))
+    
+    #output_order = [] 
+   # for tup in file_paths_ordered:
+   #     filename = tup[0] + "." + tup[1]
+   #     print(filename)
+   #     sleep(2)
+   #     output_order = output_order, filename
+    
+
+    print(str(sorted_file_paths))
+    sleep(5)
    # animation_file_paths.sort()
   #  print(str(animation_file_paths))
  #
     #sleep(5)
-    return animation_file_paths
+    return sorted_file_paths
+    #return output_order 
     
 def line_erase(line):
     #txt_erase = term.move_y(line) + ' '
