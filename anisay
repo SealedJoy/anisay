@@ -20,15 +20,15 @@ space_for_art = 5
 text_max_height = 5
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-s", "--speed",type=float, default='0.005', help="Speed in seconds at which text is printed to screen by axolotl. (Default: 0.005)")
+parser.add_argument("-s", "--speed",type=float, default='0.005', help="Speed in seconds at which text is printed to screen. (Default: 0.005)")
 parser.add_argument("-f", "--framerate",type=float, default='0.17', help="Show a frame every ... seconds (Default: 0.17)")
-parser.add_argument("-t", "--timeout", help="Automatically progress pages after a number of seconds till end (default: 2)")
-parser.add_argument("-a", "--ascii",type=str, default='axolotl', help="Ascii character folder to select (default: axolotl)")
-parser.add_argument("-c", "--command",type=str, help="On-going command to display output: (eg: fortune)")
+parser.add_argument("-t", "--timeout", default=2, help="Automatically progress pages after a number of seconds till end (default: 2)")
+parser.add_argument("-a", "--ascii",type=str, default='octelpus', help="Ascii character folder to select (default: octelpus) others in ~/.config/anisay")
+parser.add_argument("-c", "--command",type=str, help="Executable to display std output from: (eg: fortune)")
 parser.add_argument("--clear",type=float, default='0.0005', help="Speed at which text is cleared from the screen (default: 0.0001)")
-parser.add_argument("-r", "--repeat", type=float,default='3', help="On-going command repeat in seconds: (default: 5)")
-parser.add_argument("-l", "--loop", type=bool,default=False, help="restart instead of ending(default: False)")
-parser.add_argument('input', metavar='"string"', type=str, nargs='+', help='a space seperated, quoted string for each page')
+parser.add_argument("-r", "--repeat", type=float,default='3', help="On-going command repeat in seconds: (default: 3)")
+parser.add_argument("-l", "--loop", type=bool,default=False, choices=[True, False], help="restart instead of ending(default: False)")
+parser.add_argument('input', metavar='STRING', type=str, default=' ', nargs='+', help='space seperated, strings for each page')
 args = parser.parse_args()
 speed = float(args.speed)
 alphabet = " #@*!?$&abcdefghijklmnopqrstiuvwxyz "
@@ -86,6 +86,7 @@ def on_resize(*args): #globals?
     global space_for_art
     global h_padding_int
     global text_wrapped
+    calculate_working_area()
     text_max_height = term.height - 2
     space_for_text = (term.width - art_max_width) - h_padding_int*2
     space_for_art = (term.width - space_for_text) - h_padding_int*2
@@ -93,7 +94,7 @@ def on_resize(*args): #globals?
     clear_entire()
     print(term.clear)
     #kill threads
-#    text_wrapped = text_wrap(args.input)
+    #text_wrapped = text_wrap(args.input)
     # END RENDER THREADS here or from parent func?
     #wrapped_text = wrap_text(user_input)
     #space_for_text = (term.width - art_max_width) - h_padding_int*2
@@ -392,10 +393,10 @@ if __name__ == "__main__":
         #cleanup_stop_thread()
         print(term.exit_fullscreen())
         sys.exit()
-  #  finally:
+    finally:
   #      print('finally')
   #      sleep(1)
   #      #animate.raise_exception()
-  #      print(term.exit_fullscreen())
-  #      sys.exit()
+        print(term.exit_fullscreen())
+        sys.exit()
             
