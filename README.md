@@ -12,6 +12,10 @@
 
 - pypi package: blessed ( `pip3 install blessed --user` )
 
+- *nix based OS with a modern terminal and a $HOME/.config dir
+
+- $PATH contains $HOME/.local/bin
+
 ## Installation:
 
 To run clone the repo:
