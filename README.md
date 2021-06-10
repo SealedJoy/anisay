@@ -39,13 +39,13 @@ optional arguments:
 ## Examples:
 
 Run something like this:  
-`./axosay 'Not a lizard'`
+`anisay 'Not a lizard'`
 
 Print stdout of command:  
-`./axosay "$(fortune)"`
+`anisay "$(fortune)"`
 
 Multiple pages of speech:  
-`./axosay 'Welcome to axosay!' 'You can display multiple pages...' 'by giving axosay multiple positional args, each page as a space seperated string argument `
+`anisay 'Welcome to anisay!' 'You can display multiple pages...' 'by giving anisay multiple positional args, each page as a space seperated string argument `
 
 ### Keyboard:
 
