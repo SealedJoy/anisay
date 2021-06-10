@@ -2,10 +2,11 @@ Add your own ascii character by creating a folder with a series of frames (numer
 
 The ascii files should contain the same consitent amount of lines and colums across each frame of the animation, you may require padding lines with extra spaces if needed.
 
-You can use any amount of frames but they must use the numbered extensions.
+You can currently use up to 10 frames but they must use the numbered extensions.
 for example:
+new_cow/new_cow.0
 new_cow/new_cow.1
-new_cow/new_cow.2
-etc
+...
+new_cow/new_cow.9
 
-You can then run with the -a flag and enter the name of corrisponding folder
+You can then run with `anisay --ascii=new_cow "for example"` ascii / -a flag and enter the name of corresponding folder

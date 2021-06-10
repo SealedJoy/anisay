@@ -106,8 +106,8 @@ def on_resize(*args): #globals?
     #return wrapped_text
 
 def check_term():
-    if term.height < art_max_height + 2:
-        print("Axosay: Term size needs to be at least " + str(art_max_width +5) + " by " + str(art_max_height + 2))
+    if (term.height < art_max_height + 2) or (term.width < art_max_width +5):
+        print("anisay: Term size needs to be at least " + str(art_max_width +5) + " by " + str(art_max_height + 2))
         print("Current size is " + str(term.width) + " by " + str(term.height))
         sys.exit()
 
