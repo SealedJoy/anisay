@@ -1,6 +1,6 @@
-# axosay
+# anisay
  inspired by a fondness of cowsay, 
- an animated axolotl / salamander speaks to you through the terminal!
+ an animated character speaks to you through the terminal!
 
  - multi-threaded ascii animation play back in the terminal via python
  
@@ -16,11 +16,11 @@
 
 To run clone the repo:
 
-`git clone --depth=1 https://github.com/sealedjoy/axosay && cd axosay` 
+`git clone --depth=1 https://github.com/sealedjoy/anisay && cd anisay && chmod +x install.sh && ./install.sh` 
 
 ## Usage:
 ```
-usage: axosay [-h] [-s SPEED] [-t TIMEOUT] [-c CHARACTER] String [String ...]
+usage: anisay [-h] [-s SPEED] [-t TIMEOUT] [-c CHARACTER] String [String ...]
 positional arguments:
   String                a space seperated, quoted string for each page
   
