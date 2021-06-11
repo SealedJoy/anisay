@@ -41,7 +41,7 @@ if args.github:
     print("anisay: opening github project page")
     os_type = subprocess.run(["uname", "-o"],capture_output=True,timeout=4)
     if os_type.stdout.decode().strip() == "Android":
-        silence = subprocess.run(["am", "start", "--user", "0", "-a", "android.intent.action.VIEW", "-d", gh_url],capture_output=False)
+        silence = subprocess.run(["am", "start", "--user", "0", "-a", "android.intent.action.VIEW", "-d", gh_url],capture_output=True)
     else:
         import webbrowser
         webbrowser.open_new("https://github.com/sealedjoy/anisay")
