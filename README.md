@@ -64,7 +64,7 @@ Continously display fortunes:
 `anisay --loop --execute=fortune`
 
 Multiple pages of speech:  
-`anisay -i 'Welcome to anisay!' 'You can display multiple pages...' 'by giving anisay multiple args, each page as a space seperated string argument `
+`anisay -i 'With anisay you can display multiple pages of text' 'simply by giving anisay multiple args' 'each page as a space seperated string argument'`
 
 ### Keyboard:
 
