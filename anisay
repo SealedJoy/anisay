@@ -27,7 +27,7 @@ parser.add_argument("-f", "--framerate", metavar="SECS", type=float, default='0.
 parser.add_argument("-s", "--speed",metavar="SECS",type=float, default='0.005', help="Text playback speed per symbol printed (Default: 0.005)")
 parser.add_argument("-t", "--timeout", metavar="SECS", help="Automatically progress pages after a number of seconds till end")
 parser.add_argument("-c", "--clear",metavar="SECS",type=float, default='0.0005', help="Speed at which text is cleared from the screen (default: 0.0005)")
-parser.add_argument("-l", "--loop", action='store_true', help="enable looping / continuous playback")
+parser.add_argument("-l", "--loop", action='store_true', default=False, help="enable looping / continuous playback")
 parser.add_argument("-gh", "--github", action='store_true', help="open the github page for the anisay project")
 args = parser.parse_args()
 speed = float(args.speed)
@@ -46,11 +46,16 @@ if args.github:
         webbrowser.open_new(gh_url)
     sys.exit(0)
 
+print("args.loop = " + str(args.loop))
+sleep(2)
+
 # stdin / pipe awareness
 speech_input = []
-if args.input:
+if args.input or args.execute:
     speech_input = args.input
-elif not args.execute:
+    pipe_detected = False
+else:
+    pipe_detected = True
     for line in sys.stdin:
         speech_input.append(line)
 
@@ -319,12 +324,13 @@ def main():
     text_wrapped = wrap_text(user_input)                            # fetch user inputed strings (all formatted for screensize)
     with term.cbreak(), term.hidden_cursor(), term.fullscreen():    # hide cursor and go fullscreen! 
         start_animation_thread(animation)                           # start the character animation thread
-        if not args.execute:                                     # show first page
-            next_page(selected_page,text_wrapped)
+      #  if not args.execute: # and pipe_detected is False:                                     # show first page
+       #     next_page(selected_page,text_wrapped)
         
         while True: # enter main loop #dont lag it up ^^
-            if args.timeout and not args.execute:
+            if not args.execute:
                 run_forever = True #by default disable inside the loop 
+                print("args.loop =" + str(args.loop))
                 while run_forever is True:
                     for num_page in range(0,len(text_wrapped)): # 0 is already shown at start
                         animate_text = next_page(num_page, text_wrapped)
@@ -347,8 +353,7 @@ def main():
                         animate_text = next_page(page_num, text_wrapped)
                         animate_text.join()
                      #   sleep(1)
-                        if args.timeout:
-                            sleep(float(args.timeout))
+                        sleep(float(args.timeout))
 
                     user_input = run_command(args.execute)
                   #  print(term.clear)
