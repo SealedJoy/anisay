@@ -39,9 +39,9 @@ animation_folder_path = homedir + "/.config/anisay/ascii/{}/".format(args.ascii)
 if args.github:
     gh_url="https://github.com/sealedjoy/anisay"
     print("anisay: opening github project page")
-    os_type = subprocess.run(["uname", "-o"],capture_output=True)
+    os_type = subprocess.run(["uname", "-o"],capture_output=True,timeout=4)
     if os_type.stdout.decode().strip() == "Android":
-        subprocess.run(["am", "start", "--user", "0", "-a", "android.intent.action.VIEW", "-d", gh_url],capture_output=False)
+        silence = subprocess.run(["am", "start", "--user", "0", "-a", "android.intent.action.VIEW", "-d", gh_url],capture_output=False)
     else:
         import webbrowser
         webbrowser.open_new("https://github.com/sealedjoy/anisay")
