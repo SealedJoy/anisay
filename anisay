@@ -37,9 +37,14 @@ homedir = os.path.expanduser("~")
 animation_folder_path = homedir + "/.config/anisay/ascii/{}/".format(args.ascii)
 
 if args.github:
+    os_type = subprocess.run("uname",capture_output=True)
+    if os_type.stdout.decode().strip() == "Linux":
+        print("Linux found")
+    print(os_type)
+    sleep(5)
     import webbrowser
     print("anisay: opening github project page")
-    webbrowser.open("https://github.com/sealedjoy/anisay",new=0,autoraise=True)
+    webbrowser.open_new("https://github.com/sealedjoy/anisay")
     sys.exit(0)
 
 #for line in sys.stdin:
