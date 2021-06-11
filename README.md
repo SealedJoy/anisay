@@ -58,10 +58,10 @@ Run something like this:
 `anisay -i 'Not a lizard'`
 
 Print stdout of command:  
-`anisay --command=fortune`
+`anisay --execute=fortune`
 
 Continously display fortunes:  
-`anisay --loop --command=fortune`
+`anisay --loop --execute=fortune`
 
 Multiple pages of speech:  
 `anisay -i 'Welcome to anisay!' 'You can display multiple pages...' 'by giving anisay multiple args, each page as a space seperated string argument `
