@@ -37,14 +37,17 @@ homedir = os.path.expanduser("~")
 animation_folder_path = homedir + "/.config/anisay/ascii/{}/".format(args.ascii)
 
 if args.github:
-    os_type = subprocess.run("uname",capture_output=True)
-    if os_type.stdout.decode().strip() == "Linux":
-        print("Linux found")
-    print(os_type)
-    sleep(5)
-    import webbrowser
+    gh_url="https://github.com/sealedjoy/anisay"
     print("anisay: opening github project page")
-    webbrowser.open_new("https://github.com/sealedjoy/anisay")
+    os_type = subprocess.run(["uname", "-o"],capture_output=True)
+    print(os_type.stdout.decode())
+    sleep(5)
+    if os_type.stdout.decode().strip() == "Android":
+        print("android found")
+        subprocess.run(["am", "start", "--user", "0", "-a", "android.intent.action.VIEW", "-d", gh_url],capture_output=False)
+    else:
+        import webbrowser
+        webbrowser.open_new("https://github.com/sealedjoy/anisay")
     sys.exit(0)
 
 #for line in sys.stdin:
