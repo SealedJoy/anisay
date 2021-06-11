@@ -24,32 +24,47 @@ To run clone the repo:
 
 ## Usage:
 ```
-usage: anisay [-h] [-s SPEED] [-t TIMEOUT] [-c CHARACTER] String [String ...]
-positional arguments:
-  String                a space seperated, quoted string for each page
-  
+usage: anisay [-h] [-i INPUT [INPUT ...]] [-a DIR] [-x COMMAND] [-r SECS]
+              [-f SECS] [-s SECS] [-t SECS] [-c SECS] [-l] [--github]
+
 optional arguments:
   -h, --help            show this help message and exit
-  
-  -s SPEED, --speed SPEED
-                        Speed at which text is printed to screen by axolotl. (Default: 0.005)
+  -i INPUT [INPUT ...], --input INPUT [INPUT ...]
+                        space seperated, strings for each page
+  -a DIR, --ascii DIR   ascii art/character folder to select (default:
+                        octelpus) place in ~/.config/anisay/ascii
+  -x COMMAND, --execute COMMAND
+                        Executable to display std output from: (eg: fortune)
+  -r SECS, --repeat SECS
+                        Pause between running executable again whilst looping:
+                        (default: 3)
+  -f SECS, --framerate SECS
+                        ascii art animation framerate {seconds} (Default: 0.17)
+  -s SECS, --speed SECS
+                        Text playback speed per symbol printed (Default: 0.005)
+  -t SECS, --timeout SECS
+                        Automatically progress pages after a number of seconds
+                        till end (default: 2)
+  -c SECS, --clear SECS
+                        Speed at which text is cleared from the screen
+                        {seconds} (default: 0.0001)
+  -l, --loop            enable looping / continious playback
+  --github              open the github page for the anisay project
 
-  -t TIMEOUT, --timeout TIMEOUT
-                        Automatically end after a number of seconds
-
-  -c CHARACTER, --character CHARACTER
-                        Animated character to select (default: axolotl)
 ```
 ## Examples:
 
 Run something like this:  
-`anisay 'Not a lizard'`
+`anisay -i 'Not a lizard'`
 
 Print stdout of command:  
-`anisay "$(fortune)"`
+`anisay --command=fortune`
+
+Continously display fortunes:  
+`anisay --loop --command=fortune`
 
 Multiple pages of speech:  
-`anisay 'Welcome to anisay!' 'You can display multiple pages...' 'by giving anisay multiple positional args, each page as a space seperated string argument `
+`anisay -i 'Welcome to anisay!' 'You can display multiple pages...' 'by giving anisay multiple args, each page as a space seperated string argument `
 
 ### Keyboard:
 
