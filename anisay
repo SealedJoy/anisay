@@ -40,10 +40,7 @@ if args.github:
     gh_url="https://github.com/sealedjoy/anisay"
     print("anisay: opening github project page")
     os_type = subprocess.run(["uname", "-o"],capture_output=True)
-    print(os_type.stdout.decode())
-    sleep(5)
     if os_type.stdout.decode().strip() == "Android":
-        print("android found")
         subprocess.run(["am", "start", "--user", "0", "-a", "android.intent.action.VIEW", "-d", gh_url],capture_output=False)
     else:
         import webbrowser
