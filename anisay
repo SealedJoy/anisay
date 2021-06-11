@@ -39,7 +39,7 @@ animation_folder_path = homedir + "/.config/anisay/ascii/{}/".format(args.ascii)
 if args.github:
     import webbrowser
     print("anisay: opening github project page")
-    webbrowser.open("https://github.com/sealedjoy/anisay")
+    webbrowser.open("https://github.com/sealedjoy/anisay",new=0,autoraise=True)
     sys.exit(0)
 
 #for line in sys.stdin:
