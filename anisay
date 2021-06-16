@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Anisay - modern version of cowsay
+
 import random, threading, subprocess, signal, sys, os, argparse, textwrap
 from time import sleep
 from operator import itemgetter
@@ -6,14 +8,14 @@ from blessed import Terminal
 term = Terminal()
 
 # # # USER SETTINGS # # #
-bubble_char = '.'
-animation_mouth_line = 3
+animation_mouth_line = 3 #must be 1 or above
 h_padding_int = 2
 v_padding_int = 1
-art_max_width = 8 #edge to edge of ascii size
-art_max_height = 10
 # # # END USER SETTINGS # # #
 
+# init values that will be changed on the fly
+art_max_height = 10
+art_max_width = 8 #edge to edge of ascii size
 space_for_text = 10 
 space_for_art = 10
 text_max_height = 10
@@ -24,7 +26,7 @@ parser.add_argument("-a", "--ascii",metavar="DIR",type=str, default='octelpus', 
 parser.add_argument("-x", "--execute",metavar="COMMAND",type=str, help="Executable to display std output from: (eg: fortune)")
 parser.add_argument("-r", "--repeat", metavar="SECS", type=float, help="Pause between rerunning executable again whilst using --loop")
 parser.add_argument("-f", "--framerate", metavar="SECS", type=float, default='0.15', help="ascii art animation framerate (Default: 0.15)")
-parser.add_argument("-s", "--speed",metavar="SECS",type=float, default='0.005', help="Text playback speed per symbol printed (Default: 0.005)")
+parser.add_argument("-s", "--speed",metavar="SECS",type=float, default='0.004', help="Text playback speed per symbol printed (Default: 0.004)")
 parser.add_argument("-t", "--timeout", metavar="SECS", help="Automatically progress pages after a number of seconds till end")
 parser.add_argument("-c", "--clear",metavar="SECS",type=float, default='0.0005', help="Speed at which text is cleared from the screen (default: 0.0005)")
 parser.add_argument("-l", "--loop", action='store_true', default=False, help="enable looping / continuous playback")
