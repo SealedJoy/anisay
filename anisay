@@ -32,12 +32,16 @@ parser.add_argument("-c", "--clear",metavar="SECS",type=float, default='0.0005',
 parser.add_argument("-l", "--loop", action='store_true', default=False, help="enable looping / continuous playback")
 parser.add_argument("-d", "--debug", action='store_true', default=False, help="enable debug messages")
 parser.add_argument("-gh", "--github", action='store_true', help="open the github page for the anisay project")
+#parser.add_argument("--color", type=list, default=[255,255,255], help="relative text name for ascii art color")
 parser.add_argument('--version', action='version', version='%(prog)s 0.2 by SealyJ')
+
 args = parser.parse_args()
 speed = float(args.speed)
 alphabet = " #@*!?$&abcdefghijklmnopqrstiuvwxyz "
 homedir = os.path.expanduser("~")
 animation_folder_path = homedir + "/.config/anisay/ascii/{}/".format(args.ascii)
+
+
 
 if args.debug:
     print("anisay: DEBUG MODE ENABLED")
@@ -55,6 +59,10 @@ if args.github:
         import webbrowser
         webbrowser.open_new(gh_url)
     sys.exit(0)
+
+#if args.color:
+#    if args.debug:
+#        print("DEBUG: color set to: " + str(args.color))
 
 #enter_interactive_mode = True
 # stdin / pipe awareness
@@ -363,7 +371,8 @@ def render_animation(animation):
             for y in range(0,art_max_height):
                 for x in range(0, space_for_art):
                     targetx = x + space_for_text + 5
-                    print(term.red + term.move_xy(targetx,y) + animation[frame_number][y][x] + term.normal)
+                    print(term.green + term.move_xy(targetx,y) + animation[frame_number][y][x] + term.normal) 
+                    #term.color_rgb()
             sleep(args.framerate)
 
 def start_animation_thread(animation):
