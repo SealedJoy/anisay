@@ -13,7 +13,7 @@ h_padding_int = 2
 v_padding_int = 1
 # # # END USER SETTINGS # # #
 
-# init values that will be changed on the fly
+# init on the fly vars
 art_max_height = 10
 art_max_width = 8 #edge to edge of ascii size
 space_for_text = 10 
@@ -56,7 +56,7 @@ if args.github:
         webbrowser.open_new(gh_url)
     sys.exit(0)
 
-enter_interactive_mode = True
+#enter_interactive_mode = True
 # stdin / pipe awareness
 speech_input = []
 if args.input or args.execute:
@@ -69,10 +69,17 @@ else:
     for line in sys.stdin:
         speech_input.append(line)
 
-if args.loop: #full auto mode
+if args.loop is False: #full auto mode
+    enter_interactive_mode = True
+    if args.debug:
+        print("DEBUG: loop enabled - interactive mode = True")
+
+if args.timeout: 
     enter_interactive_mode = False
     if args.debug:
-        print("DEBUG: interactive mode = False ")
+        print("DEBUG: timeout enabled interactive mode = False ")
+
+
 
 def calculate_working_area():
     global h_padding
@@ -91,7 +98,50 @@ def calculate_working_area():
     space_for_art = (term.width - space_for_text) - h_padding_int*2
 
 ### testing
+exitFlag = 0
 
+class myThread (threading.Thread):
+   def __init__(self, name, page, text_wrapped):
+      threading.Thread.__init__(self,name=name)
+      self.page = page
+      self.name = name
+      self.text_wrapped = text_wrapped
+   def run(self):
+     # print("Starting " + self.name)
+     # sleep(1)
+     # print_time(self.name, 5, self.counter)
+      render_text(self.name, self.page, self.text_wrapped)
+     # print("Exiting " + self.name)
+
+#      if exitFlag:
+ #        threadName.exit()
+
+
+class TestThread(threading.Thread):
+
+    def __init__(self, name, page, text_wrapped):
+        """ constructor, setting initial variables """
+        self._stopevent = threading.Event()
+        self._sleepperiod = 1.0
+        threading.Thread.__init__(self, name)
+
+    def run(self):
+        """ main control loop """
+        #print("%s starts" % (self.getName(  ),))
+        count = 0
+        while not self._stopevent.isSet():
+            #count += 1
+            render_text(self.page,self.text_wrapped)
+           # print("loop %d" % (count,))
+            self._stopevent.wait(self._sleepperiod)
+        #print("%s ends" % (self.getName(  ),))
+
+    def join(self, timeout=None):
+        """ Stop the thread. """
+        self._stopevent.set()
+        threading.Thread.join(self, timeout)
+
+        
 class Job(threading.Thread):
 
     def __init__(self):
@@ -192,37 +242,6 @@ def wrap_text(user_input): #recieve args.input list
         wrapped_lines.append(temp_wrapped_line)
        # for item in temp_wrapped_line:
         #    wrapped_lines.append(item)
-
-#    test = isinstance(wrapped_lines[0], str)
-#    if test is True:
-#        wrapped_lines[0] = wrapped_lines 
-        #wrapped_lines.append(temp_wrapped_line)
-        #returns list containing the new lists for each line with a new index for each 
-        if False is True:
-            try:
-                test = isinstance(temp_wrapped_line[0], list)
-            except:
-                print("test failed")
-            if args.debug:
-                print("DEBUG: temp_wrapped_line = " + str(temp_wrapped_line))
-                print("length of temp_wrapped_line = " + str(len(temp_wrapped_line)))
-                print("DEBUG: isinstance(list) = " + str(test))
-             
-            if test is True:
-                if len(temp_wrapped_line) == 1:
-                    wrapped_lines.append(temp_wrapped_line[0])
-                else:
-                    for wrapped_line in temp_wrapped_line:
-                        while isinstance(wrapped_line, list):
-                            while len(wrapped_line) > 0:
-                                wrapped_lines.append(wrapped_line.pop())
-                            wrapped_line = "string"
-            else:
-                if len(temp_wrapped_line) == 1:
-                    wrapped_lines.append(temp_wrapped_line[0])
-                else:
-                    wrapped_lines.append(temp_wrapped_line)
-
     if args.debug:
         print("DEBUG: wrapped_lines = " + str(wrapped_lines))
     line_num = 0
@@ -250,8 +269,8 @@ def get_file_paths():
     animation_file_paths = [os.path.join(r,file) for r,d,f in os.walk(animation_folder_path) for file in f]
     # sort files according to numbered extension
     sorted_file_paths = sorted(animation_file_paths)
-   # print(str(sorted_file_paths))
-   # sleep(3)
+    # print(str(sorted_file_paths))
+    # sleep(3)
     return sorted_file_paths
     
 def line_erase(line):
@@ -322,7 +341,10 @@ def clear_text_in_bubble():
         for x in range(space_for_text,0,-1):
             print(term.move_xy(x + h_padding_int ,y + v_padding_int) + ' ',end='',flush=True)
 
-def render_text(page, text_wrapped):
+def render_text(threadname, page, text_wrapped):
+    #if threadname.is_alive():
+     #   threadname.quit()
+
     for y in range(0, len(text_wrapped[page])): #text_max_height):
         for x in range(0, len(text_wrapped[page][y])): #space_for_text):
             #first print a bunch of random chars as if scrolling
@@ -348,12 +370,18 @@ def start_animation_thread(animation):
     animate = threading.Thread(target=render_animation, args=(animation,))
     animate.daemon = True
     animate.start()
-    return animate
+    #return animate
 
 def start_animate_text_thread(page,text_wrapped):
-    animate_text = threading.Thread(target=render_text, args=(page,text_wrapped, ))
-    animate_text.daemon = True
+    #name = str(text_wrapped[page][0])
+    name = "john" + str(page)
+    animate_text = myThread(name,page,text_wrapped)
+    #animate_text.daemon = True
     animate_text.start()
+
+    #animate_text = threading.Thread(target=render_text, args=(page,text_wrapped, ))
+    #animate_text.daemon = True
+    #animate_text.start()
     return animate_text
 
 def prev_page(page,text_wrapped): 
@@ -415,11 +443,11 @@ def main():
                     text_wrapped = wrap_text(user_input)
                     for num_page in range(0,len(text_wrapped)): # 0 is already shown at start
                         animate_text = next_page(num_page, text_wrapped)
-                        animate_text.join()
+                     #   animate_text.join()
                         if args.timeout:
                             sleep(float(args.timeout))
                         else:
-                            sleep(0.5)
+                            sleep(len(text_wrapped[num_page])*3)
                         if enter_interactive_mode is True:
                             run_forever = False # DISABLE / enable loop after a single iteration
                             break
@@ -435,15 +463,20 @@ def main():
                         animate_text = next_page(page_num, text_wrapped)
                         animate_text.join()
                         if args.timeout:
+                            #sleep(5)
                             sleep(float(args.timeout))
                         else:
-                            sleep(0.5)
+                            totalchars = 0
+                            for line in text_wrapped[page_num]:
+                                totalchars = totalchars + len(line)
+                            sleeptime = ( totalchars / 30 ) + 4.5
+                            sleep(sleeptime)
                         if enter_interactive_mode is True:
                             run_forever = False # DISABLE / enable loop after a single iteration
                             break
                     if args.repeat and args.loop:
                         sleep(args.repeat)
-                    if enter_interactive_mode is True:
+                    if exit_interactive_mode is True:
                         run_forever = False # DISABLE / enable loop after a single iteration
             if enter_interactive_mode is True:
                 with term.cbreak(): #enter interactive mode
@@ -476,7 +509,7 @@ def main():
                                 print(term.move_xy(0,text_max_height + 1) + "restart...",end='',flush=True)
                             sleep(0.5)
                             selected_page = 0
-                            next_page(selected_page,text_wrapped)
+                            animate_text = next_page(selected_page,text_wrapped)
                         elif val.lower() == 'n':
                             line_erase(text_max_height + 1)
                             #print(term.move_xy(0,text_max_height + 1) + "loading...",end='',flush=True)
@@ -487,7 +520,7 @@ def main():
                                 sleep(0.5)
                             else:
                                 selected_page = selected_page + 1
-                                next_page(selected_page, text_wrapped)
+                                animate_text = next_page(selected_page, text_wrapped)
                         elif val.lower() == 'p':
                             if selected_page == 0:
                                 line_erase(text_max_height + 1)
