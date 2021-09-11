@@ -32,7 +32,7 @@ if [ ! -d $anisay_config_folder ] ; then
 	echo "Creating dir at: $anisay_config_folder"
 	mkdir -p $anisay_config_folder/ascii
 	chmod +x ascii/test.sh
-	cp -r ascii/* $anisay_config_folder
+	cp -r ascii/* $anisay_config_folder/ascii
 	echo "Copied resources to $anisay_config_folder"
 fi
 
