@@ -2,6 +2,8 @@
 # Anisay - modern version of cowsay
 
 import random, threading, subprocess, signal, sys, os, argparse, textwrap
+#from multiprocessing import process
+import multiprocessing
 from time import sleep
 from operator import itemgetter
 from blessed import Terminal
@@ -81,6 +83,10 @@ if args.loop is False: #full auto mode
     enter_interactive_mode = True
     if args.debug:
         print("DEBUG: loop enabled - interactive mode = True")
+elif args.loop is True:
+    enter_interactive_mode = False
+    if args.debug:
+        print("DEBUG: loop enabled - interactive mode = False")
 
 if args.timeout: 
     enter_interactive_mode = False
@@ -119,10 +125,10 @@ class myThread (threading.Thread):
      # sleep(1)
      # print_time(self.name, 5, self.counter)
       render_text(self.name, self.page, self.text_wrapped)
-     # print("Exiting " + self.name)
-
-#      if exitFlag:
- #        threadName.exit()
+     # print("Exiting " + self.name)#
+   def shutdown(self):
+      self.shutdown_flag.set()
+      pass
 
 
 class TestThread(threading.Thread):
@@ -379,13 +385,13 @@ def start_animation_thread(animation):
     animate = threading.Thread(target=render_animation, args=(animation,))
     animate.daemon = True
     animate.start()
-    #return animate
+    return animate
 
 def start_animate_text_thread(page,text_wrapped):
     #name = str(text_wrapped[page][0])
     name = "john" + str(page)
     animate_text = myThread(name,page,text_wrapped)
-    #animate_text.daemon = True
+    animate_text.daemon = True
     animate_text.start()
 
     #animate_text = threading.Thread(target=render_text, args=(page,text_wrapped, ))
@@ -485,8 +491,9 @@ def main():
                             break
                     if args.repeat and args.loop:
                         sleep(args.repeat)
-                    if exit_interactive_mode is True:
+                    if enter_interactive_mode is True:
                         run_forever = False # DISABLE / enable loop after a single iteration
+                        break
             if enter_interactive_mode is True:
                 with term.cbreak(): #enter interactive mode
                     val = ''
@@ -552,11 +559,19 @@ if __name__ == "__main__":
     #except Exception as e:
      #   print("Oops!", e.__class__, "occurred.")
     except (KeyboardInterrupt, SystemExit):
-        #cleanup_stop_thread()
+        #animate.join()
+        #animate_text.join()
+        #animate.shutdown_flag()
+        #animate_text.shutdown()
         print(term.exit_fullscreen())
         sys.exit()
     finally:
   #      #animate.raise_exception()
+  #      animate.join()
+  #      animate_text.join()
+  #      animate.shutdown_flag()
+  #      animate_text.shutdown()
+
         print(term.exit_fullscreen())
         sys.exit()
             
