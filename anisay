@@ -71,6 +71,7 @@ if args.github:
 speech_input = []
 if args.input or args.execute:
     speech_input = args.input
+    enter_interactive_mode = True
     pipe_detected = False
 else:
     if args.debug:
@@ -82,7 +83,7 @@ else:
 if args.loop is False: #full auto mode
     enter_interactive_mode = True
     if args.debug:
-        print("DEBUG: loop enabled - interactive mode = True")
+        print("DEBUG: loop disabled - interactive mode = True")
 elif args.loop is True:
     enter_interactive_mode = False
     if args.debug:
@@ -382,21 +383,21 @@ def render_animation(animation):
             sleep(args.framerate)
 
 def start_animation_thread(animation):
-    animate = threading.Thread(target=render_animation, args=(animation,))
-    animate.daemon = True
+    animate = multiprocessing.Process(target=render_animation, args=(animation,),daemon=True)
+   # animate = threading.Thread(target=render_animation, args=(animation,))
+   # animate.daemon = True
     animate.start()
     return animate
 
 def start_animate_text_thread(page,text_wrapped):
-    #name = str(text_wrapped[page][0])
-    name = "john" + str(page)
-    animate_text = myThread(name,page,text_wrapped)
-    animate_text.daemon = True
+    ## instead of spawning a new mutliprocess this should pass to text render process pipe
+    name = "text" + str(page)
+    animate_text = multiprocessing.Process(target=render_text, args=(name,page,text_wrapped,),daemon=True)
     animate_text.start()
-
-    #animate_text = threading.Thread(target=render_text, args=(page,text_wrapped, ))
+    #animate_text = myThread(name,page,text_wrapped)
     #animate_text.daemon = True
     #animate_text.start()
+
     return animate_text
 
 def prev_page(page,text_wrapped): 
@@ -425,137 +426,136 @@ def run_command(input):
     command_raw.append((subprocess.run(command, capture_output=True)).stdout.decode())
     return command_raw
 
-def main():
-    if args.debug:
-        print("DEBUG: starting main()")
-    signal.signal(signal.SIGWINCH, on_resize)
-    animation_file_paths = get_file_paths()
-    animation = load_frames(animation_file_paths)
-    check_term(animation)
-    calculate_working_area()
-    selected_page = 0
-   # if args.execute:
-   #     user_input = run_command(args.execute)
-   # else:
-    #user_input = speech_input 
-   # text_wrapped = wrap_text(user_input)                            # fetch user inputed strings (all formatted for screensize)
-   # if args.debug:
-   #     print("DEBUG: text_wrapped = " + str(text_wrapped))
-   #     sleep(3)
-    with term.cbreak(), term.hidden_cursor(), term.fullscreen():    # hide cursor and go fullscreen! 
-        start_animation_thread(animation)                           # start the character animation thread
-    #    if args.input and pipe_detected is False: # and pipe_detected is False:                                     # show first page
-      #      next_page(selected_page,text_wrapped)
-        while True: # enter main loop #dont lag it up ^^
-            run_forever = True #by default disable inside the loop 
-            if not args.execute:
-                text_wrapped = wrap_text(user_input)                            # fetch user inputed strings (all formatted for screensize)
-                while run_forever is True:
-                    if pipe_detected:
-                        user_input = speech_input
-                    else:
-                        user_input = args.input
-                    text_wrapped = wrap_text(user_input)
-                    for num_page in range(0,len(text_wrapped)): # 0 is already shown at start
-                        animate_text = next_page(num_page, text_wrapped)
-                     #   animate_text.join()
-                        if args.timeout:
-                            sleep(float(args.timeout))
-                        else:
-                            sleep(len(text_wrapped[num_page])*3)
-                        if enter_interactive_mode is True:
-                            run_forever = False # DISABLE / enable loop after a single iteration
-                            break
-                    if args.repeat and args.loop:
-                        sleep(args.repeat)
-                    if args.timeout:
-                        sleep(args.timeout)
-            elif args.execute:  #Command mode loop
-                while run_forever is True:
-                    user_input = run_command(args.execute)
-                    text_wrapped = wrap_text(user_input)
-                    for page_num in range(0,len(text_wrapped)):
-                        animate_text = next_page(page_num, text_wrapped)
-                        animate_text.join()
-                        if args.timeout:
-                            #sleep(5)
-                            sleep(float(args.timeout))
-                        else:
-                            totalchars = 0
-                            for line in text_wrapped[page_num]:
-                                totalchars = totalchars + len(line)
-                            sleeptime = ( totalchars / 30 ) + 4.5
-                            sleep(sleeptime)
-                        if enter_interactive_mode is True:
-                            run_forever = False # DISABLE / enable loop after a single iteration
-                            break
-                    if args.repeat and args.loop:
-                        sleep(args.repeat)
-                    if enter_interactive_mode is True:
-                        run_forever = False # DISABLE / enable loop after a single iteration
-                        break
-            if enter_interactive_mode is True:
-                with term.cbreak(): #enter interactive mode
-                    val = ''
-                    if args.execute:
-                        restart_text = "[r]un command"
-                    else:
-                        restart_text = "[r]estart"
-                    while val.lower() != 'q':
-                        if len(text_wrapped) == 1: # if on last page of text
-                            line_erase(text_max_height + 1)
-                            print(term.move_xy(0,text_max_height + 1) + restart_text + " [q]uit",end='',flush=True)
-
-                        elif selected_page == len(text_wrapped)-1: # if on last page of text
-                            line_erase(text_max_height + 1)
-                            print(term.move_xy(0,text_max_height + 1) + "[p]rev " + restart_text + " [q]uit",end='',flush=True)
-                        elif selected_page == 0: # if on first page of text
-                            line_erase(text_max_height + 1)
-                            print(term.move_xy(0,text_max_height + 1) + "[n]ext " + restart_text + " [q]uit",end='',flush=True)
-                        else:
-                            line_erase(text_max_height + 1)
-                            print(term.move_xy(0,text_max_height + 1) + "[n]ext [p]rev " + restart_text + " [q]uit",end='',flush=True)
-                        val = term.inkey(timeout=5)
-                        if val.lower() == 'r':
-                            line_erase(text_max_height + 1)
-                            if args.execute:
-                                text_wrapped = wrap_text(run_command(args.execute))
-                                print(term.move_xy(0,text_max_height + 1) + "rerun...",end='',flush=True)
-                            else:
-                                print(term.move_xy(0,text_max_height + 1) + "restart...",end='',flush=True)
-                            sleep(0.5)
-                            selected_page = 0
-                            animate_text = next_page(selected_page,text_wrapped)
-                        elif val.lower() == 'n':
-                            line_erase(text_max_height + 1)
-                            #print(term.move_xy(0,text_max_height + 1) + "loading...",end='',flush=True)
-                            #sleep(0.5)
-                            if selected_page == len(text_wrapped)-1:
-                                line_erase(text_max_height + 1)
-                                print(term.move_xy(0,text_max_height + 1) + "last page..",end='',flush=True)
-                                sleep(0.5)
-                            else:
-                                selected_page = selected_page + 1
-                                animate_text = next_page(selected_page, text_wrapped)
-                        elif val.lower() == 'p':
-                            if selected_page == 0:
-                                line_erase(text_max_height + 1)
-                                print(term.move_xy(0,text_max_height + 1) + "first page..",end='',flush=True)
-                                sleep(0.5)
-                            else:
-                                selected_page = selected_page - 1
-                                prev_page(selected_page, text_wrapped)
-                        elif val.lower() == 'q':
-                            line_erase(text_max_height + 1)
-                            print(term.move_xy(0,text_max_height + 1) + "quitting..",end='',flush=True)
-                            sleep(0.3)
-                            print(term.exit_fullscreen())
-                            sys.exit()
 
 if __name__ == "__main__":
     try:
-        #on_resize()
-        main()
+        if args.debug:
+            print("DEBUG: starting main()")
+        signal.signal(signal.SIGWINCH, on_resize)
+        animation_file_paths = get_file_paths()
+        animation = load_frames(animation_file_paths)
+        check_term(animation)
+        calculate_working_area()
+        selected_page = 0
+       # if args.execute:
+       #     user_input = run_command(args.execute)
+       # else:
+        #user_input = speech_input 
+       # text_wrapped = wrap_text(user_input)                            # fetch user inputed strings (all formatted for screensize)
+       # if args.debug:
+       #     print("DEBUG: text_wrapped = " + str(text_wrapped))
+       #     sleep(3)
+        with term.cbreak(), term.hidden_cursor(), term.fullscreen():    # hide cursor and go fullscreen! 
+            start_animation_thread(animation)                           # start the character animation thread
+        #    if args.input and pipe_detected is False: # and pipe_detected is False:                                     # show first page
+          #      next_page(selected_page,text_wrapped)
+            while True: # enter main loop #dont lag it up ^^
+                run_forever = True #by default disable inside the loop 
+                if not args.execute:
+                    text_wrapped = wrap_text(user_input)                            # fetch user inputed strings (all formatted for screensize)
+                    while run_forever is True:
+                        if pipe_detected:
+                            user_input = speech_input
+                        else:
+                            user_input = args.input
+                        text_wrapped = wrap_text(user_input)
+                        for num_page in range(0,len(text_wrapped)): # 0 is already shown at start
+                            animate_text = next_page(num_page, text_wrapped)
+                         #   animate_text.join()
+                            if args.timeout:
+                                sleep(float(args.timeout))
+                            else:
+                                sleep(len(text_wrapped[num_page])*3)
+                            if enter_interactive_mode is True:
+                                run_forever = False # DISABLE / enable loop after a single iteration
+                                break
+                        if args.repeat and args.loop:
+                            sleep(args.repeat)
+                        if args.timeout:
+                            sleep(args.timeout)
+                elif args.execute:  #Command mode loop
+                    while run_forever is True:
+                        user_input = run_command(args.execute)
+                        text_wrapped = wrap_text(user_input)
+                        for page_num in range(0,len(text_wrapped)):
+                            animate_text = next_page(page_num, text_wrapped)
+                            animate_text.join()
+                            if args.timeout:
+                                #sleep(5)
+                                sleep(float(args.timeout))
+                            else:
+                                totalchars = 0
+                                for line in text_wrapped[page_num]:
+                                    totalchars = totalchars + len(line)
+                                sleeptime = ( totalchars / 30 ) + 4.5
+                                sleep(sleeptime)
+                            if enter_interactive_mode is True:
+                                run_forever = False # DISABLE / enable loop after a single iteration
+                                break
+                        if args.repeat and args.loop:
+                            sleep(args.repeat)
+                        if enter_interactive_mode is True:
+                            run_forever = False # DISABLE / enable loop after a single iteration
+                            break
+                if enter_interactive_mode is True:
+                    with term.cbreak(): #enter interactive mode
+                        val = ''
+                        if args.execute:
+                            restart_text = "[r]un command"
+                        else:
+                            restart_text = "[r]estart"
+                        while val.lower() != 'q':
+                            if len(text_wrapped) == 1: # if on last page of text
+                                line_erase(text_max_height + 1)
+                                print(term.move_xy(0,text_max_height + 1) + restart_text + " [q]uit",end='',flush=True)
+
+                            elif selected_page == len(text_wrapped)-1: # if on last page of text
+                                line_erase(text_max_height + 1)
+                                print(term.move_xy(0,text_max_height + 1) + "[p]rev " + restart_text + " [q]uit",end='',flush=True)
+                            elif selected_page == 0: # if on first page of text
+                                line_erase(text_max_height + 1)
+                                print(term.move_xy(0,text_max_height + 1) + "[n]ext " + restart_text + " [q]uit",end='',flush=True)
+                            else:
+                                line_erase(text_max_height + 1)
+                                print(term.move_xy(0,text_max_height + 1) + "[n]ext [p]rev " + restart_text + " [q]uit",end='',flush=True)
+                            val = term.inkey(timeout=5)
+                            if val.lower() == 'r':
+                                line_erase(text_max_height + 1)
+                                if args.execute:
+                                    text_wrapped = wrap_text(run_command(args.execute))
+                                    print(term.move_xy(0,text_max_height + 1) + "rerun...",end='',flush=True)
+                                else:
+                                    print(term.move_xy(0,text_max_height + 1) + "restart...",end='',flush=True)
+                                sleep(0.5)
+                                selected_page = 0
+                                animate_text = next_page(selected_page,text_wrapped)
+                            elif val.lower() == 'n':
+                                line_erase(text_max_height + 1)
+                                #print(term.move_xy(0,text_max_height + 1) + "loading...",end='',flush=True)
+                                #sleep(0.5)
+                                if selected_page == len(text_wrapped)-1:
+                                    line_erase(text_max_height + 1)
+                                    print(term.move_xy(0,text_max_height + 1) + "last page..",end='',flush=True)
+                                    sleep(0.5)
+                                else:
+                                    selected_page = selected_page + 1
+                                    animate_text = next_page(selected_page, text_wrapped)
+                            elif val.lower() == 'p':
+                                if selected_page == 0:
+                                    line_erase(text_max_height + 1)
+                                    print(term.move_xy(0,text_max_height + 1) + "first page..",end='',flush=True)
+                                    sleep(0.5)
+                                else:
+                                    selected_page = selected_page - 1
+                                    prev_page(selected_page, text_wrapped)
+                            elif val.lower() == 'q':
+                                line_erase(text_max_height + 1)
+                                print(term.move_xy(0,text_max_height + 1) + "quitting..",end='',flush=True)
+                                sleep(0.3)
+                                print(term.exit_fullscreen())
+                                sys.exit()
+        
+    #on_resize()
     #except Exception as e:
      #   print("Oops!", e.__class__, "occurred.")
     except (KeyboardInterrupt, SystemExit):
