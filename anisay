@@ -131,59 +131,6 @@ class myThread (threading.Thread):
       self.shutdown_flag.set()
       pass
 
-
-class TestThread(threading.Thread):
-
-    def __init__(self, name, page, text_wrapped):
-        """ constructor, setting initial variables """
-        self._stopevent = threading.Event()
-        self._sleepperiod = 1.0
-        threading.Thread.__init__(self, name)
-
-    def run(self):
-        """ main control loop """
-        #print("%s starts" % (self.getName(  ),))
-        count = 0
-        while not self._stopevent.isSet():
-            #count += 1
-            render_text(self.page,self.text_wrapped)
-           # print("loop %d" % (count,))
-            self._stopevent.wait(self._sleepperiod)
-        #print("%s ends" % (self.getName(  ),))
-
-    def join(self, timeout=None):
-        """ Stop the thread. """
-        self._stopevent.set()
-        threading.Thread.join(self, timeout)
-
-        
-class Job(threading.Thread):
-
-    def __init__(self):
-        threading.Thread.__init__(self)
-        # The shutdown_flag is a threading.Event object that
-        # indicates whether the thread should be terminated.
-        self.shutdown_flag = threading.Event()
-
-    def run(self,page,text_wrapped):
-        print('Thread #%s started' % self.ident)
-        while not self.shutdown_flag.is_set():
-            # ... Job code here ...
-            #time.sleep(0.5)
-            render_text(page,text_wrapped)
-        print('Thread #%s stopped' % self.ident)
-
-class ServiceExit(Exception):
-    """
-    Custom exception which is used to trigger the clean exit
-    of all running threads and the main program.
-    """
-    pass
-
-def service_shutdown(signum, frame):
-    print('Caught signal %d' % signum)
-    raise ServiceExit
-
 def on_resize(*args): #globals?
     global text_max_height
     global space_for_text
