@@ -504,19 +504,23 @@ if __name__ == "__main__":
                             animate_text = next_page(num_page, text_wrapped)
                             sleep(args.pause) 
                             sleep(args.timeout)
-                            break
+                            term.exit_fullscreen()
+                            sys.exit()
                         else:
-                            #here calc totalwords timing
-                            for line in text_wrapped[num_page]:
-                                totalchars = (totalchars + len(line))
-                            sleeptime = ( totalchars / 30 ) + 1
+                            #calc totalwords timing
                             for num_page in range(0,len(text_wrapped)): 
+                              #  for line in text_wrapped[num_page]:
+                                  #  totalchars = (totalchars + len(line))
+                                 #   sleeptime = ( totalchars / 30 ) + 1
+
                                 animate_text = next_page(num_page, text_wrapped)
                                 animate_text.join()
                                 sleep(args.pause) #add args.pause
-                                sleep(sleeptime)
+                                #sleep(sleeptime)
 
-                        break # exiting this loop will end anisay
+                        #term.clear()
+                        term.exit_fullscreen()
+                        sys.exit() # exiting this loop will end anisay
                 else:
                     #GGif args.loop:
                     animate_text = next_page(page_num, text_wrapped)
