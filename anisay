@@ -313,7 +313,7 @@ def render_animation(animation):
             for y in range(0,art_max_height):
                 for x in range(0, space_for_art):
                     targetx = x + space_for_text + 5
-                    print(term.blue + term.move_xy(targetx,y) + animation[frame_number][y][x] + term.normal) 
+                    print(term.red + term.move_xy(targetx,y) + animation[frame_number][y][x] + term.normal) 
                     #term.color_rgb()
             sleep(args.framerate)
 
