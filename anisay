@@ -25,14 +25,15 @@ text_max_height = 10
 
 parser = argparse.ArgumentParser(description='animated ascii playback / text pager inspired by cowsay')
 parser.add_argument("-i", "--input", type=str, action='extend', nargs="+", help='space seperated, strings for each page')
-parser.add_argument("-a", "--ascii",metavar="DIR",type=str, default='octelpus', help="ascii art/character folder to select (default: octelpus) place in ~/.config/anisay/ascii")
+parser.add_argument("-c", "--ascii",metavar="DIR",type=str, default='octelpus', help="ascii art/character folder to select (default: octelpus) place in ~/.config/anisay/ascii")
 parser.add_argument("-x", "--execute",metavar="COMMAND",type=str, help="Executable to display std output from: (eg: fortune)")
-parser.add_argument("-r", "--repeat", metavar="SECS", type=float, help="Pause between rerunning executable again whilst using --loop")
+parser.add_argument("-r", "--repeat", metavar="SECS", type=float, help="Pause between rerunning executable again whilst using --auto")
+parser.add_argument("-p", "--pause", metavar="SECS", type=float, help="Pause at the end of each page")
 parser.add_argument("-f", "--framerate", metavar="SECS", type=float, default='0.15', help="ascii art animation framerate (Default: 0.15)")
 parser.add_argument("-s", "--speed",metavar="SECS",type=float, default='0.004', help="Text playback speed per symbol printed (Default: 0.004)")
-parser.add_argument("-t", "--timeout", metavar="SECS", help="Automatically progress pages after a number of seconds till end")
-parser.add_argument("-c", "--clear",metavar="SECS",type=float, default='0.0005', help="Speed at which text is cleared from the screen (default: 0.0005)")
-parser.add_argument("-l", "--loop", action='store_true', default=False, help="enable looping / continuous playback")
+parser.add_argument("-t", "--timeout", metavar="SECS", help="pause for a timeout after text has been displayed then exit")
+parser.add_argument("--clear",metavar="SECS",type=float, default='0.0005', help="Speed at which text is cleared from the screen (default: 0.0005)")
+parser.add_argument("-a", "--auto", action='store_true', default=False, help="automatically progress through pages")
 parser.add_argument("-d", "--debug", action='store_true', default=False, help="enable debug messages")
 parser.add_argument("-gh", "--github", action='store_true', help="open the github page for the anisay project")
 #parser.add_argument("--color", type=list, default=[255,255,255], help="relative text name for ascii art color")
@@ -40,17 +41,16 @@ parser.add_argument('--version', action='version', version='%(prog)s 0.2 by Seal
 
 args = parser.parse_args()
 speed = float(args.speed)
-alphabet = " #@*!?$&abcdefghijklmnopqrstiuvwxyz "
+alphabet = "$$$$$ "
 homedir = os.path.expanduser("~")
 animation_folder_path = homedir + "/.config/anisay/ascii/{}/".format(args.ascii)
 
 
+def debug(input):
+    if args.debug:
+        print("DEBUG: " + input)
 
-if args.debug:
-    print("anisay: DEBUG MODE ENABLED")
-    print("DEBUG: termsize = " + str(term.height) + " high by " + str(term.width))
-    if args.input:
-        print("DEBUG: args.input = " + str(args.input))
+debug("termsize = " + str(term.height) + " high by " + str(term.width))
 
 if args.github:
     gh_url="https://github.com/sealedjoy/anisay"
@@ -75,25 +75,21 @@ if args.input or args.execute:
     speech_input = args.input
     pipe_detected = False
 else:
-    if args.debug:
-        print("DEBUG: pipe / stdin detected ")
+    debug("pipe / stdin detected ")
     pipe_detected = True
     for line in sys.stdin:
         speech_input.append(line)
 
-if args.loop is False: #full auto mode
+if args.auto is False: #full auto mode
     enter_interactive_mode = True
-    if args.debug:
-        print("DEBUG: loop disabled - interactive mode = True")
-elif args.loop is True:
+    debug("auto disabled - interactive mode = True")
+elif args.auto is True:
     enter_interactive_mode = False
-    if args.debug:
-        print("DEBUG: loop enabled - interactive mode = False")
+    debug("auto enabled - interactive mode = False")
 
 if args.timeout: 
     enter_interactive_mode = False
-    if args.debug:
-        print("DEBUG: timeout enabled interactive mode = False ")
+    debug("timeout enabled interactive mode = False ")
 
 def calculate_working_area():
     global h_padding
@@ -194,15 +190,13 @@ def wrap_text(user_input): #recieve args.input list
     page_num = 0
     for dirty_string in user_input: 
         cleaned_strings.append(dirty_string.replace("\n", " ").replace("\t", "").replace("  ", " ").replace("   ", " ")) 
-    if args.debug:
-        print("DEBUG: cleaned_strings = " + str(cleaned_strings))
+    #debug("cleaned_strings = " + str(cleaned_strings))
     for string_num in range(0,len(cleaned_strings)): #pad all text on first load
         temp_wrapped_line = textwrap.wrap(cleaned_strings[string_num],width=space_for_text-1, initial_indent='',subsequent_indent='', replace_whitespace=True, expand_tabs=True, tabsize=1)
         wrapped_lines.append(temp_wrapped_line)
        # for item in temp_wrapped_line:
         #    wrapped_lines.append(item)
-    if args.debug:
-        print("DEBUG: wrapped_lines = " + str(wrapped_lines))
+    #debug("wrapped_lines = " + str(wrapped_lines))
     line_num = 0
     page_num = 0
     while page_num in range(0,len(wrapped_lines)): #check each page
@@ -220,10 +214,7 @@ def wrap_text(user_input): #recieve args.input list
 def get_file_paths():
     global animation_folder_path
     if os.path.isdir(animation_folder_path) is False:
-        if args.debug:
-            print("DEBUG: ascii files not installed to ~/.config")
-        else:
-            print("recommended to run installer")
+        debug("ascii files not installed to ~/.config")
         animation_folder_path = "ascii/{}/".format(args.ascii)
     animation_file_paths = [os.path.join(r,file) for r,d,f in os.walk(animation_folder_path) for file in f]
     # sort files according to numbered extension
@@ -322,7 +313,7 @@ def render_animation(animation):
             for y in range(0,art_max_height):
                 for x in range(0, space_for_art):
                     targetx = x + space_for_text + 5
-                    print(term.green + term.move_xy(targetx,y) + animation[frame_number][y][x] + term.normal) 
+                    print(term.blue + term.move_xy(targetx,y) + animation[frame_number][y][x] + term.normal) 
                     #term.color_rgb()
             sleep(args.framerate)
 
@@ -367,22 +358,30 @@ def run_command(input):
     #command is string, split via spaces and reassemble as array
     if not isinstance(input, list):
         command = input.split(" ")
-    command_raw=[]
-    command_raw.append((subprocess.run(command, capture_output=True)).stdout.decode())
-    return command_raw
+    else:
+        command = input
+    try:
+        command_raw=[]
+        command_raw.append((subprocess.run(command, capture_output=True)).stdout.decode())
+        return command_raw
+    except:
+        #print("\n\n\n\nFAILED TO RUN COMMAND")
+        #sleep(4)
+        command_raw.append('failed to run command: ' + input)
+        return command_raw
 
 def user_input_options(text_wrapped,text_max_height):
     # with term.cbreak(): #enter interactive mod
         #while True:
         val = ''
-        val = term.inkey(timeout=1)
+       # val = term.inkey(timeout=5)
         selected_page = 0
         if args.execute:
             restart_text = "[r]un command"
         else:
             restart_text = "[r]estart"
         while val.lower() != 'q':
-            val = term.inkey(timeout=1)
+            val = term.inkey(timeout=5)
             if len(text_wrapped) == 1: # if on last page of text
                 line_erase(text_max_height + 1)
                 print(term.move_xy(0,text_max_height + 1) + restart_text + " [q]uit",end='',flush=True)
@@ -397,15 +396,17 @@ def user_input_options(text_wrapped,text_max_height):
                 print(term.move_xy(0,text_max_height + 1) + "[n]ext [p]rev " + restart_text + " [q]uit",end='',flush=True)
             if val.lower() == 'r':
                 line_erase(text_max_height + 1)
-                print(term.clear,flush=True)
                 if args.execute:
                     text_wrapped = wrap_text(run_command(args.execute))
                     print(term.move_xy(0,text_max_height + 1) + "rerun...",end='',flush=True)
                 else:
                     print(term.move_xy(0,text_max_height + 1) + "restart...",end='',flush=True)
-               # sleep(0.5)
+                sleep(0.5)
                 selected_page = 0
+                #print(term.clear,flush=True)
+                #animate_text.kill() ### why does this end??
                 animate_text = next_page(selected_page,text_wrapped)
+                #break
             elif val.lower() == 'n':
                 line_erase(text_max_height + 1)
                 #print(term.move_xy(0,text_max_height + 1) + "loading...",end='',flush=True)
@@ -417,6 +418,7 @@ def user_input_options(text_wrapped,text_max_height):
                 else:
                     selected_page = selected_page + 1
                     animate_text = next_page(selected_page, text_wrapped)
+                break
             elif val.lower() == 'p':
                 if selected_page == 0:
                     line_erase(text_max_height + 1)
@@ -425,6 +427,7 @@ def user_input_options(text_wrapped,text_max_height):
                 else:
                     selected_page = selected_page - 1
                     animate_text = prev_page(selected_page, text_wrapped)
+                break
             elif val.lower() == 'q':
                 line_erase(text_max_height + 1)
                 print(term.move_xy(0,text_max_height + 1) + "quitting..",end='',flush=True)
@@ -433,11 +436,11 @@ def user_input_options(text_wrapped,text_max_height):
                 sys.exit()
 
 
-
 if __name__ == "__main__":
     try:
-        if args.debug:
-            print("DEBUG: starting main()")
+        debug("starting main()")
+        page_num = 0
+        num_page = 0
         signal.signal(signal.SIGWINCH, on_resize)
         animation_file_paths = get_file_paths()
         animation = load_frames(animation_file_paths)
@@ -445,84 +448,44 @@ if __name__ == "__main__":
         calculate_working_area()
         with term.cbreak(), term.hidden_cursor(), term.fullscreen():    # hide cursor and go fullscreen! 
             start_animation_thread(animation)                           # start the character animation thread
-                    #    if args.input and pipe_detected is False: # and pipe_detected is False:                                     # show first page
-          #      next_page(selected_page,text_wrapped)
+### NEW CLEAN LOOP
             while True: # enter main loop #dont lag it up ^^
-                run_forever = True #by default disable inside the loop 
-                if not args.execute:
-                    #print("\n\n\nNOT ARGS EXECUTe RANNNNN!!")
-                    #sleep(3)
-                    while run_forever is True:
-                        if pipe_detected:
-                            user_input = speech_input
-                        else:
-                            user_input = args.input
-                        text_wrapped = wrap_text(user_input)
-                        for num_page in range(0,len(text_wrapped)): # 0 is already shown at start
-                            animate_text = next_page(num_page, text_wrapped)
-                            if args.timeout:
-                                sleep(float(args.timeout))
-                            #else:
-                                #sleep(len(text_wrapped[num_page])*3)
-                            if enter_interactive_mode is True:
-                                #animate_text.join()
-                                run_forever = False # DISABLE / enable loop after a single iteration
-                                break
-                        if args.repeat and args.loop:
-                            sleep(args.repeat)
-                        if args.timeout:
-                            sleep(args.timeout)
-                elif args.execute:  #Command mode loop
-                    while run_forever is True:
-                        user_input = run_command(args.execute)
-                        text_wrapped = wrap_text(user_input)
-                        for page_num in range(0,len(text_wrapped)):
-                            animate_text = next_page(page_num, text_wrapped)
-                            #animate_text.join() # wait for page to fin
-                            if args.timeout:
-                                sleep(float(args.timeout))
-                            elif args.loop is True:
-                                totalchars = 0
-                                for line in text_wrapped[page_num]:
-                                    totalchars = totalchars + len(line)
-                                    sleeptime = ( totalchars / 80 ) + 1
-                                    sleep(sleeptime)
-                            if enter_interactive_mode is True:
-                                #animate_text.join()
-                                run_forever = False # DISABLE / enable loop after a single iteration
-                                break
-                       # if args.repeat and args.loop:
-                       #     sleep(args.repeat)
-                        #if enter_interactive_mode is True:
-                         #   run_forever = False # DISABLE / enable loop after a single iteration
-                          #  break
-                if enter_interactive_mode is True:
-                    #print("\n\n\nentered interactive mode!")
-                    #user_input_process =  multiprocessing.Process(target=user_input_options, args=(text_wrapped,text_max_height))
-                    #user_input_process.start()
+                if speech_input:
+                    #debug("speechinput")
+                    text_wrapped = wrap_text(speech_input)
+                elif args.execute:
+                    #debug("commandinput")
+                    text_wrapped = wrap_text(run_command(args.execute))
+                else:
+                    #debug("pipeinput")
+                    text_wrapped = wrap_text(user_input)
+                if args.auto:
+                    for num_page in range(0,len(text_wrapped)): 
+                        animate_text = next_page(num_page, text_wrapped)
+                        sleep(args.pause) #add args.pause
+                    if not args.loop:
+                        sleep(args.timeout)
+                        break # exiting this loop will end anisay
+                else:
+                    animate_text = next_page(page_num, text_wrapped)
                     user_input_options(text_wrapped,text_max_height)
-                    #animate_text.join()
-                    #print("\n\n\nfinished user_input_options")
-                    #sleep(1)
+                    #if page_num 
+        debug("main Finished")
+        sleep(5)
+#####NEW 
 
-    #on_resize()
-    #except Exception as e:
-     #   print("Oops!", e.__class__, "occurred.")
+
+                   #on_resize()
+    except Exception as e:
+        debug("Oops!", e.__class__, "occurred.")
+        sys.exit(1)
     except (KeyboardInterrupt, SystemExit):
-        #animate.join()
-        #animate_text.join()
-        #animate.shutdown_flag()
-        #animate_text.shutdown()
         print(term.exit_fullscreen())
-        sys.exit()
+        debug("KeyboardInterrupt Recieved, exiting...")
+        sys.exit(0)
     finally:
-  #      #animate.raise_exception()
-  #      animate.join()
-  #      animate_text.join()
-  #      animate.shutdown_flag()
-  #      animate_text.shutdown()
-       # animate_text.join()
-
-        print(term.exit_fullscreen())
-        sys.exit()
+        #animate_text.join()
+        term.clear()
+        term.exit_fullscreen()
+        sys.exit(0)
             
