@@ -19,11 +19,16 @@ elif [ "$1" == "-r" ] ; then
 	fi
 	exit 0
 elif [ "$1" == "-u" ] ; then
+	installed=$(command -v anisay)	
+	if [ -z $installed ] ; then
+		echo "anisay is not installed yet"
+	fi
 	chmod +x anisay
 	cp -f anisay $HOME/.local/bin/ && echo 'updated anisay in $HOME/.local/bin/anisay'
 	echo "Also update $HOME/.config/anisay files? y/n"
 	read -r userprompt
 	if [ $userprompt == "y" ] ; then
+	mkdir -p $anisay_config_folder/ascii
 	cp -f -r ascii/* $anisay_config_folder/ascii && echo "Copied resources to $anisay_config_folder"
 	exit 0
 	fi
