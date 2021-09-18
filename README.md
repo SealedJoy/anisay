@@ -50,16 +50,20 @@ optional arguments:
   -c SECS, --clear SECS
                         Speed at which text is cleared from the screen
                         {seconds} (default: 0.0001)
-  -l, --loop            enable looping / continious playback
-  -a, --auto            enable automatic playback
-  -gh, --github         open the github page for the anisay project
-  --nofx                don't display text effects
+  -l, --loop            
+                        enable looping / continious playback
+  -a, --auto            
+                        enable automatic playback
+  -gh, --github         
+                        open the github page for the anisay project
+  --nofx                      
+                        don't display text effects
 
 ```
 ## Examples:
 
 Run something like this:  
-`anisay -i 'Not a lizard'`
+`anisay -c axolotl -i 'Not a lizard'`
 
 Print stdout of command:  
 `anisay --execute=fortune`
@@ -74,6 +78,7 @@ Multiple pages of speech:
 
 `r` restart  
 `n` next  
+`p` previous
 `q` quit  
  
  
