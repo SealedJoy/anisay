@@ -29,9 +29,10 @@ usage: anisay [-h] [-i INPUT [INPUT ...]] [-a DIR] [-x COMMAND] [-r SECS]
 
 optional arguments:
   -h, --help            show this help message and exit
+  -d, --debug           show this debug help messages
   -i INPUT [INPUT ...], --input INPUT [INPUT ...]
                         space seperated, strings for each page
-  -a DIR, --ascii DIR   ascii art/character folder to select (default:
+  -c DIR, --ascii DIR   ascii art/character folder to select (default:
                         octelpus) place in ~/.config/anisay/ascii
   -x COMMAND, --execute COMMAND
                         Executable to display std output from: (eg: fortune)
@@ -40,16 +41,19 @@ optional arguments:
                         (default: 3)
   -f SECS, --framerate SECS
                         ascii art animation framerate {seconds} (Default: 0.17)
+  -p SECS, --pause SECS
+                        pause between each page {seconds} (Default: 1)
   -s SECS, --speed SECS
                         Text playback speed per symbol printed (Default: 0.005)
   -t SECS, --timeout SECS
-                        Automatically progress pages after a number of seconds
-                        till end (default: 2)
+                        Automatically exit after a number of seconds
   -c SECS, --clear SECS
                         Speed at which text is cleared from the screen
                         {seconds} (default: 0.0001)
   -l, --loop            enable looping / continious playback
-  --github              open the github page for the anisay project
+  -a, --auto            enable automatic playback
+  -gh, --github         open the github page for the anisay project
+  --nofx                don't display text effects
 
 ```
 ## Examples:
