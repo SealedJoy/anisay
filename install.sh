@@ -37,6 +37,7 @@ fi
 installed=$(command -v anisay)	
 if [ -z $installed ] ; then
 	chmod +x anisay
+	mkdir -p $HOME/.local/bin/
 	cp -f anisay $HOME/.local/bin/ && echo 'Copied anisay to $HOME/.local/bin/anisay'
 else
 	echo -en "install.sh: anisay already installed\n"
